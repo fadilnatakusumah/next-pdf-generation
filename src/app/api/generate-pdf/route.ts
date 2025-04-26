@@ -103,6 +103,69 @@ export async function POST(req: NextRequest) {
                 // Continue anyway
               });
 
+            console.log("Checking for images...");
+
+            // A more robust approach to wait for images
+            // This runs directly in the browser context
+            await page
+              .evaluate(() => {
+                return new Promise<void>((resolve) => {
+                  // If there are no images or all images are already loaded, resolve immediately
+                  const imgElements = Array.from(
+                    document.querySelectorAll("img")
+                  );
+
+                  if (
+                    imgElements.length === 0 ||
+                    imgElements.every((img) => img.complete)
+                  ) {
+                    console.log("No images on the page, continuing anyway");
+                    return resolve();
+                  }
+
+                  // Set a timeout to resolve anyway after 5 seconds
+                  const timeout = setTimeout(() => {
+                    console.log("Image loading timed out, continuing anyway");
+                    resolve();
+                  }, 5000);
+
+                  // Count loaded images
+                  let loadedImages = 0;
+                  const totalImages = imgElements.length;
+
+                  // Function to check if all images are loaded
+                  const checkAllImagesLoaded = () => {
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                      console.log("All images loaded. Total: ", totalImages);
+                      clearTimeout(timeout);
+                      resolve();
+                    }
+                  };
+
+                  // Add event listeners for each image
+                  imgElements.forEach((img) => {
+                    if (img.complete) {
+                      checkAllImagesLoaded();
+                    } else {
+                      img.addEventListener("load", checkAllImagesLoaded, {
+                        once: true,
+                      });
+                      img.addEventListener("error", checkAllImagesLoaded, {
+                        once: true,
+                      });
+                    }
+                  });
+                });
+              })
+              .catch((err) => {
+                console.warn(
+                  "Warning: Image loading check failed:",
+                  err.message
+                );
+                // Continue anyway
+              });
+
             console.log("Generating PDF...");
 
             // Generate PDF with a timeout
