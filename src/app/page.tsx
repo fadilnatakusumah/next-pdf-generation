@@ -1,6 +1,8 @@
 "use client";
 import { Info } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,64 +13,88 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const formSchema = z.object({
+  url: z.string().url("Please enter a valid URL").min(1, "URL is required"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
-  const [textValue, setTextValue] = useState("");
   const [previewURL, setPreviewURL] = useState(false);
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      url: "",
+    },
+  });
+
+  const { getValues } = form;
+
   function generate() {
-    if (textValue) {
+    if (getValues("url")) {
       try {
-        new URL(textValue);
         setPreviewURL(true);
       } catch (err) {
-        if (err instanceof TypeError) {
-          throw new Error(err.message);
-        }
-        throw new Error("Invalid URL");
+        console.error(err);
       }
     }
   }
 
   function clearTextValue() {
-    setTextValue("");
     setPreviewURL(false);
+    form.reset();
   }
 
   return (
-    <main className="container mx-auto py-10 px-4 grid gap-6 md:gap-2 lg:grid-cols-2">
+    <main className="container mx-auto py-10 px-4 md:px-0 grid gap-6 md:gap-2 lg:grid-cols-2">
       <Card className="max-w-2xl h-fit">
         <CardHeader>
           <CardTitle>Webpage to PDF Converter</CardTitle>
           <CardDescription>Generate PDFs from any webpage URL</CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              generate();
-            }}
-          >
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="url">URL</Label>
-                <Input
-                  value={textValue}
-                  id="url"
-                  placeholder="URL of a website"
-                  onChange={({ target }) => setTextValue(target.value)}
-                />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(generate)}>
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <FormField
+                    control={form.control}
+                    name="url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            id="url"
+                            placeholder="URL of a website"
+                          />
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </Form>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button onClick={clearTextValue} variant="outline">
             Clear
           </Button>
-          <Button onClick={generate}>Fetch</Button>
+          <Button onClick={form.handleSubmit(generate)}>Fetch</Button>
         </CardFooter>
       </Card>
       <Card
@@ -81,10 +107,11 @@ export default function Home() {
             Generate PDF
           </Button>
         </div>
+
         {previewURL ? (
           <iframe
             style={{ scrollbarWidth: "thin" }}
-            src={textValue}
+            src={form.getValues("url")}
             className="w-full min-h-screen"
             title="preview"
           />
