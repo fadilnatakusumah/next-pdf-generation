@@ -1,5 +1,5 @@
 "use client";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,7 +30,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
-  const [previewURL, setPreviewURL] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  console.log("🚀 ~ Home ~ error:", error);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -44,7 +47,7 @@ export default function Home() {
   function generate() {
     if (getValues("url")) {
       try {
-        setPreviewURL(true);
+        setShowPreview(true);
       } catch (err) {
         console.error(err);
       }
@@ -52,8 +55,31 @@ export default function Home() {
   }
 
   function clearTextValue() {
-    setPreviewURL(false);
+    setShowPreview(false);
+    setError("");
     form.reset();
+  }
+
+  async function downloadPDF() {
+    setLoading(true);
+    const url = getValues("url");
+
+    try {
+      await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: url }),
+      });
+      setLoading(false);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -103,12 +129,28 @@ export default function Home() {
       >
         <div className="text-xl flex justify-between items-center mb-4 font-semibold">
           <div>Preview</div>
-          <Button disabled={!previewURL} color="primary">
-            Generate PDF
+          <Button
+            disabled={!showPreview || isLoading}
+            onClick={downloadPDF}
+            color="primary"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating PDF...
+              </>
+            ) : (
+              "Generate PDF"
+            )}
           </Button>
         </div>
 
-        {previewURL ? (
+        {error &&
+          !error.includes("NetworkError") && ( // TODO: weird error response from ReadableStream, check it out later
+            <div className="text-red-500 text-sm">{error}</div>
+          )}
+
+        {showPreview ? (
           <iframe
             style={{ scrollbarWidth: "thin" }}
             src={form.getValues("url")}
