@@ -1,4 +1,5 @@
 "use client";
+import { AnimatePresence, motion } from "framer-motion";
 import { Info, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -132,7 +133,12 @@ export default function Home() {
       </Card>
 
       <Card
-        style={{ scrollbarWidth: "thin" }}
+        style={{
+          scrollbarWidth: "thin",
+          maxHeight: showPreview ? "0 !important" : "unset",
+          overflow: "hidden",
+          transition: "max-height 0.5s ease",
+        }}
         className="shadow-md p-4 rounded-lg"
       >
         <div className="text-xl flex justify-between items-center font-semibold">
@@ -158,27 +164,38 @@ export default function Home() {
             <div className="text-red-500 text-sm">{error}</div>
           )}
 
-        {showPreview ? (
-          <iframe
-            style={{
-              border: "none",
-              width: "100%",
-              height: "100%",
-              transformOrigin: "0 0",
-              zoom: "0.5",
-            }}
-            src={form.getValues("url")}
-            className="w-full min-h-screen mt-4"
-            title="preview"
-          />
-        ) : (
-          <div className="flex justify-center items-center h-full gap-2 text-sm">
-            <span>
-              <Info size={16} />
-            </span>
-            <span>You have to fetch a URL first</span>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {showPreview ? (
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: "650px" }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="w-full overflow-hidden"
+            >
+              <iframe
+                style={{
+                  border: "none",
+                  width: "100%",
+                  height: "100%",
+                }}
+                src={form.getValues("url")}
+                className="w-full mt-4"
+                title="preview"
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-center items-center h-full gap-2 text-sm"
+            >
+              <span>
+                <Info size={16} />
+              </span>
+              <span>You have to fetch a URL first</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Card>
     </main>
   );
