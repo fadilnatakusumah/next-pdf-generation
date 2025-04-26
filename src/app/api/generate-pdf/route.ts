@@ -63,7 +63,10 @@ export async function POST(req: NextRequest) {
             // Connect to Browserless with explicit connection options
             browser = await puppeteer.connect({
               browserWSEndpoint: `wss://production-sfo.browserless.io?token=${browserlessToken}`,
-              defaultViewport: { width: 1280, height: 1024 },
+              defaultViewport: {
+                width: 1920,
+                height: 1080,
+              },
               protocolTimeout: 30000, // Connection timeout
             });
 

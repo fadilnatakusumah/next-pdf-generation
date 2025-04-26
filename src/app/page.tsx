@@ -2,6 +2,7 @@
 import { Info, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,6 @@ export default function Home() {
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  console.log("🚀 ~ Home ~ error:", error);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -46,8 +46,14 @@ export default function Home() {
 
   function generate() {
     if (getValues("url")) {
+      const tempUrl = getValues("url");
+      setShowPreview(false);
       try {
-        setShowPreview(true);
+        form.setValue("url", "");
+        setTimeout(() => {
+          setShowPreview(true);
+          form.setValue("url", tempUrl);
+        }, 0);
       } catch (err) {
         console.error(err);
       }
@@ -73,6 +79,7 @@ export default function Home() {
         body: JSON.stringify({ url: url }),
       });
       setLoading(false);
+      toast.success("PDF generated successfully!", { richColors: true });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
@@ -123,11 +130,12 @@ export default function Home() {
           <Button onClick={form.handleSubmit(generate)}>Fetch</Button>
         </CardFooter>
       </Card>
+
       <Card
         style={{ scrollbarWidth: "thin" }}
         className="shadow-md p-4 rounded-lg"
       >
-        <div className="text-xl flex justify-between items-center mb-4 font-semibold">
+        <div className="text-xl flex justify-between items-center font-semibold">
           <div>Preview</div>
           <Button
             disabled={!showPreview || isLoading}
@@ -152,9 +160,15 @@ export default function Home() {
 
         {showPreview ? (
           <iframe
-            style={{ scrollbarWidth: "thin" }}
+            style={{
+              border: "none",
+              width: "100%",
+              height: "100%",
+              transformOrigin: "0 0",
+              zoom: "0.5",
+            }}
             src={form.getValues("url")}
-            className="w-full min-h-screen"
+            className="w-full min-h-screen mt-4"
             title="preview"
           />
         ) : (
