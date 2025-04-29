@@ -770,6 +770,11 @@
   dependencies:
     csstype "^3.0.2"
 
+"@types/streamsaver@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@types/streamsaver/-/streamsaver-2.0.5.tgz#f513e0a619c7fe6ea0ca04e86c65d40908cb2c59"
+  integrity sha512-93o0zjV8swEhR2YI57h/2ytbJF8bJh7sI9GNB02TLJHdM4fWDxZuChwfWhyD8vt2ub4kw4rsfZ0C0yAUX+3gcg==
+
 "@types/yauzl@^2.9.1":
   version "2.10.3"
   resolved "https://registry.yarnpkg.com/@types/yauzl/-/yauzl-2.10.3.tgz#e9b2808b4f109504a03cda958259876f61017999"
@@ -3268,6 +3273,11 @@ stable-hash@^0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/stable-hash/-/stable-hash-0.0.5.tgz#94e8837aaeac5b4d0f631d2972adef2924b40269"
   integrity sha512-+L3ccpzibovGXFK+Ap/f8LOS0ahMrHTf3xu7mMLSpEGU0EO9ucaysSylKo9eRDFNhWve/y275iPmIZ4z39a9iA==
+
+streamsaver@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/streamsaver/-/streamsaver-2.0.6.tgz#869d2347dd70191e0ac888d52296956a8cba2ed9"
+  integrity sha512-LK4e7TfCV8HzuM0PKXuVUfKyCB1FtT9L0EGxsFk5Up8njj0bXK8pJM9+Wq2Nya7/jslmCQwRK39LFm55h7NBTw==
 
 streamsearch@^1.1.0:
   version "1.1.0"

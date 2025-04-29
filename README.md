@@ -1,6 +1,15 @@
 ## Next PDF Converter
 
-First, run the development server:
+First, you need to put your Browserless API token inside the `.env.local`
+```bash
+BROWSERLESS_TOKEN=
+```
+
+
+
+
+
+Then run the development server:
 
 ```bash
 npm run dev

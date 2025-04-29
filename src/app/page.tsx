@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import StreamSaver from "streamsaver";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -72,13 +73,36 @@ export default function Home() {
     const url = getValues("url");
 
     try {
-      await fetch("/api/generate-pdf", {
+      const res = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ url: url }),
       });
+
+      if (!res.ok) throw new Error("Server error");
+
+      // Create a writable stream directly to the file system
+      const fileStream = StreamSaver.createWriteStream("webpage.pdf", {
+        size: Number(res.headers.get("content-length") ?? 0),
+      });
+
+      if (!res.body) {
+        throw new Error("No response body");
+      }
+
+      const reader = res.body.getReader();
+      const writer = fileStream.getWriter();
+
+      // Pipe chunks one-by-one
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        await writer.write(value!);
+      }
+      await writer.close();
+
       setLoading(false);
       toast.success("PDF generated successfully!", { richColors: true });
     } catch (err) {
