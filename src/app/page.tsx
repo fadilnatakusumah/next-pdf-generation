@@ -1,11 +1,10 @@
 "use client";
 import { motion } from "framer-motion";
 import { Info, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import StreamSaver from "streamsaver";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -68,7 +67,7 @@ export default function Home() {
     form.reset();
   }
 
-  async function downloadPDF() {
+  const downloadPDF = useCallback(async () => {
     setLoading(true);
     const url = getValues("url");
 
@@ -81,27 +80,18 @@ export default function Home() {
         body: JSON.stringify({ url: url }),
       });
 
-      if (!res.ok) throw new Error("Server error");
+      // Read the entire stream into a Blob
+      const blob = await res.blob();
 
-      // Create a writable stream directly to the file system
-      const fileStream = StreamSaver.createWriteStream("webpage.pdf", {
-        size: Number(res.headers.get("content-length") ?? 0),
-      });
-
-      if (!res.body) {
-        throw new Error("No response body");
-      }
-
-      const reader = res.body.getReader();
-      const writer = fileStream.getWriter();
-
-      // Pipe chunks one-by-one
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        await writer.write(value!);
-      }
-      await writer.close();
+      // Create an object URL and click a hidden <a> to download it
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "webpage.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
 
       setLoading(false);
       toast.success("PDF generated successfully!", { richColors: true });
@@ -112,7 +102,8 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="container mx-auto py-10 px-4 md:px-0 grid gap-6 md:gap-2 lg:grid-cols-2">
